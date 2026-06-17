@@ -1,161 +1,102 @@
-# 📚 ComicInfo Generator — GUI Edition
+# 📚 ComicInfo Generator
 
-A powerful **GUI tool** to generate and embed `ComicInfo.xml` metadata into `.cbz` comic files — built with Python and Tkinter.
+A cross-platform GUI tool to generate and manage **ComicInfo.xml metadata** for comic/manga/manhwa collections.
 
----
+<br>
 
-## ✨ Features
+## 🚀 Features
 
-- 🖥️ Modern GUI (no CLI needed)
-- 📦 Batch process multiple `.cbz` files
-- 🏷️ Automatic metadata generation
-- 🔢 Smart chapter/volume detection
-- 🧠 Decimal chapter handling (e.g. 10.5, 12.1)
-- 📚 Volume, date, and summary rules
-- 📝 Custom XML fields support
-- 🔄 Resume interrupted runs
-- ⚡ Parallel processing
-- 🧪 Dry-run mode (preview changes safely)
-- 🎯 Designed for Komga / Kavita compatibility
+* 🖥️ Clean and simple GUI
+* 📦 Batch process multiple `.cbz` files
+* 🔢 Smart chapter/volume detection
+* 🧠 Decimal chapter handling (e.g. 10.5, 12.1)
+* 📚 Volume, date, and summary rules
+* 📁 Works with CBZ/Comic archives
+* 📝 Custom XML fields support
+* ⚡ Parallel processing
+* 🔄 Resume interrupted runs
+* 🧪 Dry-run mode (preview changes safely)
+* 🌍 Cross-platform support:
 
----
+  * Windows (.exe)
+  * Linux (.tar.gz / .deb / .rpm)
+  * macOS (.app)
 
-## 📥 Download
+<br>
 
-Download the appropriate file:
+## 📥 Installation
 
-- 🪟 Windows → `comicinfo_generator.exe`
-- 🐧 Linux → 
-  - `comicinfo-generator-linux.tar.gz`
-  - `comicinfo-generator.deb`
-  - `comicinfo-generator.rpm`
+Download the latest release from the **Releases** page.
 
----
+### Windows
 
-## 🚀 Usage
+* Download `.exe`
+* Double-click to run
 
-### 🪟 Windows
+### Linux
 
-1. Download `comicinfo_gui.exe`
-2. Double-click to run
-3. No installation required
+* `.tar.gz` → extract and run
+* `.deb` → install with:
 
----
+  ```bash
+  sudo dpkg -i comicinfo-generator.deb
+  ```
+* `.rpm` → install with:
 
-### 🐧 Linux
+  ```bash
+  sudo rpm -i comicinfo-generator.rpm
+  ```
 
-#### Option 1 — Run directly
+### macOS
 
-```bash
-tar -xzf comicinfo-linux.tar.gz
-./comicinfo_gui
-```
+* Download `.app`
+* Move to Applications
+* If blocked: Right click → Open
 
-#### Option 2 — Install (.deb)
-
-```bash
-sudo dpkg -i comicinfo.deb
-```
-
-#### Option 3 — Install (.rpm)
-
-```bash
-sudo rpm -i comicinfo.rpm
-```
-
----
-
-## ⚠️ Requirements (Linux only)
-
-Tkinter is required:
-
-```bash
-sudo apt install python3-tk
-```
-
----
-
-## 🛠️ How It Works
-
-The tool:
-
-1. Reads `.cbz` files
-2. Extracts chapter/volume info from filenames
-3. Generates `ComicInfo.xml`
-4. Embeds metadata into archive
-5. Optionally renames files
-
----
-
-## 📁 Supported Metadata
-
-- Title
-- Series
-- Number
-- Volume
-- Writer / Penciller
-- Publisher
-- Language
-- Genre / Rating
-- Date (Year / Month / Day)
-- Summary
-- Custom fields
-
----
-
-## ⚙️ Configuration
-
-You can:
-
-- Load chapter titles from JSON
-- Define volume rules
-- Define date rules
-- Define summary rules
-- Customize naming formats
-
----
-
-## 🧪 Development
-
-### Clone repo
-
-```bash
-git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git
-cd YOUR_REPO
-```
-
-### Run locally
-
-```bash
-python comicinfo_gui.py
-```
-
-### Build manually
-
-```bash
-pip install pyinstaller
-pyinstaller --onefile --noconsole comicinfo_gui.py
-```
-
----
+<br>
 
 ## ⚠️ Notes
 
-- Antivirus may flag the `.exe` (common with PyInstaller)
-- Linux builds require Tkinter installed
-- RPM/DEB packages are minimal (no desktop integration yet)
+* Windows may show a SmartScreen warning (normal for unsigned apps)
+* macOS may require manual permission on first launch
 
----
+<br>
+
+## 🧪 Status
+
+🚧 Currently in **beta**
+
+Expect:
+
+* Minor bugs
+* UI improvements in progress
+* Features still being added
+
+<br>
+
+## 🛠️ Tech Stack
+
+* Python
+* PyInstaller (for packaging)
+* GitHub Actions (CI/CD)
+
+<br>
 
 ## 📌 Roadmap
 
-- [ ] AppImage support (better Linux distribution)
-- [ ] Improved packaging (desktop icons, menu entries)
-- [ ] Performance optimizations
-- [ ] Themes 
+* Improved UI/UX
+* Better metadata parsing
+* Performance optimizations
+* More customization options
 
----
+<br>
+
+## 🤝 Contributing
+
+Currently a solo project, but suggestions and ideas are welcome.
+
+<br>
 
 ## 📄 License
 
-MIT License — free to use, modify, and distribute.
+MIT License
