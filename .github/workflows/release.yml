@@ -11,7 +11,6 @@ on:
 jobs:
   build-windows:
     runs-on: windows-latest
-
     steps:
       - uses: actions/checkout@v4
 
@@ -19,11 +18,9 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install dependencies
-        run: pip install pyinstaller
+      - run: pip install pyinstaller
 
-      - name: Build EXE
-        run: pyinstaller --onefile --noconsole --name comicinfo-generator comicinfo_gui.py
+      - run: pyinstaller --onefile --noconsole --name comicinfo-generator comicinfo_gui.py
 
       - uses: actions/upload-artifact@v4
         with:
@@ -32,46 +29,41 @@ jobs:
 
   build-linux:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: |
+      - run: |
           sudo apt update
           sudo apt install -y python3 python3-pip rpm dpkg-dev
           pip install pyinstaller
 
-      - name: Build binary
-        run: |
+      - run: |
           pyinstaller --onefile --name comicinfo-generator comicinfo_gui.py
           chmod +x dist/comicinfo-generator
 
-      - name: Create tar.gz
-        run: |
+      - run: |
           mkdir -p release
           cp dist/comicinfo-generator release/
-          tar -czvf comicinfo-generator-linux.tar.gz -C release comicinfo-generator
+          tar -czf comicinfo-generator-linux.tar.gz -C release comicinfo-generator
 
-      - name: Create DEB
-        run: |
+      - run: |
           VERSION=${GITHUB_REF_NAME#v}
           mkdir -p pkg/DEBIAN pkg/usr/local/bin
           cp dist/comicinfo-generator pkg/usr/local/bin/
           printf "Package: comicinfo-generator\nVersion: $VERSION\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: You\nDescription: ComicInfo GUI Generator\n" > pkg/DEBIAN/control
           dpkg-deb --build pkg comicinfo-generator.deb
 
-      - name: Create RPM
-        run: |
+      - run: |
           VERSION=${GITHUB_REF_NAME#v}
           BASE_VERSION=$(echo $VERSION | cut -d- -f1)
           RELEASE_PART=$(echo $VERSION | cut -s -d- -f2)
-          if [ -z "$RELEASE_PART" ]; then
-            RELEASE_PART=1
-          fi
+          if [ -z "$RELEASE_PART" ]; then RELEASE_PART=1; fi
+
           mkdir -p rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
           cp dist/comicinfo-generator rpmbuild/SOURCES/
+
           printf "Name: comicinfo-generator\nVersion: $BASE_VERSION\nRelease: $RELEASE_PART\nSummary: ComicInfo GUI Generator\nLicense: MIT\n\n%%description\nComicInfo GUI Generator\n\n%%install\nmkdir -p %%{buildroot}/usr/local/bin\ncp %%{_sourcedir}/comicinfo-generator %%{buildroot}/usr/local/bin/\n\n%%files\n/usr/local/bin/comicinfo-generator\n" > rpmbuild/SPECS/comicinfo-generator.spec
+
           rpmbuild --define "_topdir $(pwd)/rpmbuild" -bb rpmbuild/SPECS/comicinfo-generator.spec
           cp rpmbuild/RPMS/x86_64/*.rpm comicinfo-generator.rpm
 
@@ -85,7 +77,6 @@ jobs:
 
   build-macos:
     runs-on: macos-latest
-
     steps:
       - uses: actions/checkout@v4
 
@@ -93,17 +84,14 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install dependencies
-        run: pip install pyinstaller
+      - run: pip install pyinstaller
 
-      - name: Build macOS app
-        run: pyinstaller --onefile --windowed --name "ComicInfo Generator" comicinfo_gui.py
+      - run: pyinstaller --onefile --windowed --name "ComicInfo Generator" comicinfo_gui.py
 
-      - name: Package macOS app
-        run: |
+      - run: |
           mkdir -p release
           cp -R dist/"ComicInfo Generator.app" release/
-          tar -czvf comicinfo-generator-macos.app.tar.gz -C release "ComicInfo Generator.app"
+          tar -czf comicinfo-generator-macos.app.tar.gz -C release "ComicInfo Generator.app"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -115,18 +103,47 @@ jobs:
       - build-windows
       - build-linux
       - build-macos
-
     runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/checkout@v4
+
       - uses: actions/download-artifact@v4
 
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
+      - name: Generate changelog
+        id: changelog
+        run: |
+          FEATURES=$(git log --pretty=format:"%s" | grep '^feat' || true)
+          FIXES=$(git log --pretty=format:"%s" | grep '^fix' || true)
+          OTHERS=$(git log --pretty=format:"%s" | grep -vE '^(feat|fix)' || true)
+
+          echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+          echo "### ✨ Features" >> $GITHUB_OUTPUT
+          echo "$FEATURES" | sed 's/^/- /' >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "### 🐛 Fixes" >> $GITHUB_OUTPUT
+          echo "$FIXES" | sed 's/^/- /' >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "### 📦 Others" >> $GITHUB_OUTPUT
+          echo "$OTHERS" | sed 's/^/- /' >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - uses: softprops/action-gh-release@v2
         with:
-          name: ${{ github.ref_name }}
+          name: ComicInfo Generator ${{ github.ref_name }}
           prerelease: ${{ contains(github.ref_name, 'beta') }}
-          generate_release_notes: true
+          body: |
+            ## 🚀 ComicInfo Generator ${{ github.ref_name }}
+
+            ### 📦 Downloads
+            - Windows: `.exe`
+            - Linux: `.tar.gz`, `.deb`, `.rpm`
+            - macOS: `.app`
+
+            ${{ steps.changelog.outputs.CHANGELOG }}
+
+            ---
+            ⚠️ This is a beta release
           files: |
             windows-build/comicinfo-generator.exe
             linux-builds/comicinfo-generator-linux.tar.gz
