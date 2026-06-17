@@ -107,25 +107,52 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # IMPORTANT (needed for tags)
 
       - uses: actions/download-artifact@v4
 
-      - name: Generate changelog
+      - name: Generate changelog (clean + categorized)
         id: changelog
         run: |
-          FEATURES=$(git log --pretty=format:"%s" | grep '^feat' || true)
-          FIXES=$(git log --pretty=format:"%s" | grep '^fix' || true)
-          OTHERS=$(git log --pretty=format:"%s" | grep -vE '^(feat|fix)' || true)
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+
+          if [ -z "$PREV_TAG" ]; then
+            RANGE=""
+          else
+            RANGE="$PREV_TAG..HEAD"
+          fi
+
+          # Extract commits
+          FEATURES=$(git log $RANGE --pretty=format:"%s" | grep '^feat' || true)
+          FIXES=$(git log $RANGE --pretty=format:"%s" | grep '^fix' || true)
+          OTHERS=$(git log $RANGE --pretty=format:"%s" | grep -vE '^(feat|fix)' || true)
+
+          # Clean + capitalize
+          clean() {
+            sed -E 's/^(feat|fix): ?//' | sed -E 's/^(.)/\U\1/'
+          }
 
           echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
-          echo "### ✨ Features" >> $GITHUB_OUTPUT
-          echo "$FEATURES" | sed 's/^/- /' >> $GITHUB_OUTPUT
-          echo "" >> $GITHUB_OUTPUT
-          echo "### 🐛 Fixes" >> $GITHUB_OUTPUT
-          echo "$FIXES" | sed 's/^/- /' >> $GITHUB_OUTPUT
-          echo "" >> $GITHUB_OUTPUT
-          echo "### 📦 Others" >> $GITHUB_OUTPUT
-          echo "$OTHERS" | sed 's/^/- /' >> $GITHUB_OUTPUT
+
+          if [ -n "$FEATURES" ]; then
+            echo "### ✨ Features" >> $GITHUB_OUTPUT
+            echo "$FEATURES" | clean | sed 's/^/- /' >> $GITHUB_OUTPUT
+            echo "" >> $GITHUB_OUTPUT
+          fi
+
+          if [ -n "$FIXES" ]; then
+            echo "### 🐛 Fixes" >> $GITHUB_OUTPUT
+            echo "$FIXES" | clean | sed 's/^/- /' >> $GITHUB_OUTPUT
+            echo "" >> $GITHUB_OUTPUT
+          fi
+
+          if [ -n "$OTHERS" ]; then
+            echo "### 📦 Others" >> $GITHUB_OUTPUT
+            echo "$OTHERS" | sed -E 's/^(.)/\U\1/' | sed 's/^/- /' >> $GITHUB_OUTPUT
+            echo "" >> $GITHUB_OUTPUT
+          fi
+
           echo "EOF" >> $GITHUB_OUTPUT
 
       - uses: softprops/action-gh-release@v2
@@ -133,13 +160,6 @@ jobs:
           name: ComicInfo Generator ${{ github.ref_name }}
           prerelease: ${{ contains(github.ref_name, 'beta') }}
           body: |
-            ## 🚀 ComicInfo Generator ${{ github.ref_name }}
-
-            ### 📦 Downloads
-            - Windows: `.exe`
-            - Linux: `.tar.gz`, `.deb`, `.rpm`
-            - macOS: `.app`
-
             ${{ steps.changelog.outputs.CHANGELOG }}
 
             ---
