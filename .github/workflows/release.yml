@@ -61,9 +61,14 @@ jobs:
       - name: Create RPM
         run: |
           VERSION=${GITHUB_REF_NAME#v}
+          BASE_VERSION=$(echo $VERSION | cut -d- -f1)
+          RELEASE_PART=$(echo $VERSION | cut -s -d- -f2)
+          if [ -z "$RELEASE_PART" ]; then
+            RELEASE_PART=1
+          fi
           mkdir -p rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
           cp dist/comicinfo-generator rpmbuild/SOURCES/
-          printf "Name: comicinfo-generator\nVersion: $VERSION\nRelease: 1\nSummary: ComicInfo GUI Generator\nLicense: MIT\n\n%%description\nComicInfo GUI Generator\n\n%%install\nmkdir -p %%{buildroot}/usr/local/bin\ncp %%{_sourcedir}/comicinfo-generator %%{buildroot}/usr/local/bin/\n\n%%files\n/usr/local/bin/comicinfo-generator\n" > rpmbuild/SPECS/comicinfo-generator.spec
+          printf "Name: comicinfo-generator\nVersion: $BASE_VERSION\nRelease: $RELEASE_PART\nSummary: ComicInfo GUI Generator\nLicense: MIT\n\n%%description\nComicInfo GUI Generator\n\n%%install\nmkdir -p %%{buildroot}/usr/local/bin\ncp %%{_sourcedir}/comicinfo-generator %%{buildroot}/usr/local/bin/\n\n%%files\n/usr/local/bin/comicinfo-generator\n" > rpmbuild/SPECS/comicinfo-generator.spec
           rpmbuild --define "_topdir $(pwd)/rpmbuild" -bb rpmbuild/SPECS/comicinfo-generator.spec
           cp rpmbuild/RPMS/x86_64/*.rpm comicinfo-generator.rpm
 
